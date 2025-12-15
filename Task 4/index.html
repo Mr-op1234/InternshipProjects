@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Slider</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+        
+        .slider-container {
+            position: relative;
+            width: 800px;
+            max-width: 90%;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .slider {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+        }
+        
+        .slide {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 5px;
+            z-index: 10;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-button:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        
+        .prev {
+            left: 20px;
+        }
+        
+        .next {
+            right: 20px;
+        }
+        
+        .dots-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .dot.active {
+            background-color: white;
+        }
+        
+        .slide-number {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="slider-container" id="sliderContainer">
+        <div class="slide-number">1 / 3</div>
+        <div class="slider" id="slider">
+            <div class="slide">
+                <img src="https://via.placeholder.com/800x400/FF6B6B/FFFFFF?text=Slide+1" alt="Slide 1">
+            </div>
+            <div class="slide">
+                <img src="https://via.placeholder.com/800x400/4ECDC4/FFFFFF?text=Slide+2" alt="Slide 2">
+            </div>
+            <div class="slide">
+                <img src="https://via.placeholder.com/800x400/45B7D1/FFFFFF?text=Slide+3" alt="Slide 3">
+            </div>
+        </div>
+        <button class="nav-button prev" id="prevBtn">&#10094;</button>
+        <button class="nav-button next" id="nextBtn">&#10095;</button>
+        <div class="dots-container" id="dotsContainer">
+            <div class="dot active" data-slide="0"></div>
+            <div class="dot" data-slide="1"></div>
+            <div class="dot" data-slide="2"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get DOM elements
+            const slider = document.getElementById('slider');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const dots = document.querySelectorAll('.dot');
+            const slideNumber = document.querySelector('.slide-number');
+            const sliderContainer = document.getElementById('sliderContainer');
+            
+            // Slider variables
+            let currentIndex = 0;
+            const totalSlides = document.querySelectorAll('.slide').length;
+            let slideInterval;
+            const intervalTime = 4000; // 4 seconds (including transition time)
+            const transitionDuration = 500; // 0.5 seconds for transition animation
+            
+            // Update slider position
+            function updateSlider() {
+                slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+                
+                // Update active dot
+                dots.forEach((dot, index) => {
+                    if (index === currentIndex) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+                
+                // Update slide number
+                slideNumber.textContent = `${currentIndex + 1} / ${totalSlides}`;
+            }
+            
+            // Go to next slide
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % totalSlides;
+                updateSlider();
+            }
+            
+            // Go to previous slide
+            function prevSlide() {
+                currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                updateSlider();
+            }
+            
+            // Go to specific slide
+            function goToSlide(index) {
+                currentIndex = index;
+                updateSlider();
+            }
+            
+            // Start automatic sliding
+            function startSliding() {
+                slideInterval = setInterval(nextSlide, intervalTime);
+            }
+            
+            // Stop automatic sliding
+            function stopSliding() {
+                clearInterval(slideInterval);
+            }
+            
+            // Event listeners for navigation buttons
+            nextBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                nextSlide();
+                // Reset the timer but account for the transition duration
+                stopSliding();
+                setTimeout(() => {
+                    startSliding();
+                }, intervalTime - transitionDuration);
+            });
+            
+            prevBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                prevSlide();
+                // Reset the timer but account for the transition duration
+                stopSliding();
+                setTimeout(() => {
+                    startSliding();
+                }, intervalTime - transitionDuration);
+            });
+            
+            // Event listeners for dots
+            dots.forEach(dot => {
+                dot.addEventListener('click', function() {
+                    const slideIndex = parseInt(this.getAttribute('data-slide'));
+                    goToSlide(slideIndex);
+                    // Reset the timer but account for the transition duration
+                    stopSliding();
+                    setTimeout(() => {
+                        startSliding();
+                    }, intervalTime - transitionDuration);
+                });
+            });
+            
+            // Pause on hover
+            sliderContainer.addEventListener('mouseenter', function() {
+                stopSliding();
+            });
+            sliderContainer.addEventListener('mouseleave', function() {
+                startSliding();
+            });
+            
+            // No need for restartInterval anymore since we handle timing differently
+            
+            // Initialize the slider
+            updateSlider();
+            startSliding();
+        });
+    </script>
+</body>
+</html>
